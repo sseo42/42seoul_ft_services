@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ftps
+  labels:
+    app: ftps
+spec:
+  ports:
+    - port: 21
+      protocol: TCP
+      name: ftps
+    - port: 20
+      protocol: TCP
+      name: ftps-data
+    - port: 30010
+      protocol: TCP
+      nodePort: 30010
+      name: ftps-pasv1
+    - port: 30011
+      protocol: TCP
+      nodePort: 30011
+      name: ftps-pasv2
+    - port: 30012
+      protocol: TCP
+      nodePort: 30012
+      name: ftps-pasv3
+    - port: 30013
+      protocol: TCP
+      nodePort: 30013
+      name: ftps-pasv4
+      nodePort: 30013
+    - port: 30014
+      protocol: TCP
+      nodePort: 30014
+      name: ftps-pasv5
+  selector:
+    app: ftp
+  type: LoadBalancer
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: ftps
+  labels:
+    app: ftps
+spec:
+  selector:
+    matchLabels:
+      app: ftps
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ftps
+    spec:
+      containers:
+      - image: sseo_ftps:1.0
+        imagePullPolicy: Never
+        name: ftps
+        env:
+          - name: NODE_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+        ports:
+        - containerPort: 21
+        - containerPort: 30010
+        - containerPort: 30011
+        - containerPort: 30012
+        - containerPort: 30013
+        - containerPort: 30014
+        - containerPort: 30015
