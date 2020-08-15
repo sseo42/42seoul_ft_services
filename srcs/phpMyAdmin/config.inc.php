@@ -3,8 +3,8 @@
 $variables = array(
 		'PMA_HOST',
 		'PMA_PORT',
-		'PMA_USER',
-		'PMA_PASSWORD'
+		'MYSQL_USER',
+		'MYSQL_PASSWORD'
 );
 
 foreach ($variables as $var) {
@@ -36,8 +36,8 @@ $cfg['Servers'][$i]['compress'] = false;
 $cfg['Servers'][$i]['AllowNoPassword'] = true;
 $cfg['Servers'][$i]['host'] = $_ENV['PMA_HOST'];
 $cfg['Servers'][$i]['port'] = $_ENV['PMA_PORT'];
-$cfg['Servers'][$i]['user'] = $_ENV['PMA_USER'];
-$cfg['Servers'][$i]['password'] = $_ENV['PMA_PASSWORD'];
+$cfg['Servers'][$i]['user'] = $_ENV['MYSQL_USER'];
+$cfg['Servers'][$i]['password'] = $_ENV['MYSQL_PASSWORD'];
 
 /**
  * phpMyAdmin configuration storage settings.
