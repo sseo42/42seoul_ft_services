@@ -12,8 +12,6 @@ COPY ./db_init.sql .
 RUN chmod 755 start.sh
 RUN chmod 755 init_mysql.sh
 
-#VOLUME /var/lib/mysql
-
 EXPOSE 3306
 
 ENTRYPOINT ./start.sh

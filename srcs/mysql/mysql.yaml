@@ -12,8 +12,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: mysql
-    tier: backend
+    app: mysql-app
 ---
 apiVersion: v1
 kind: Secret
@@ -21,7 +20,9 @@ metadata:
   name: mysql-secrets
 type: Opaque
 data:
-  ROOT_PASSWORD: c3VwZXItc2VjcmV0LXBhc3N3b3jk
+  MYSQL_ROOT_PASSWORD: c3NlbzQyLXNlY3JldA==
+  MYSQL_USER: c3Nlbw==
+  MYSQL_PASSWORD: cGFzc3dvcmQ=
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -46,17 +47,15 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysql
-      tier: backend
-#  strategy:
-#    type: Recreate
+      app: mysql-app
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        app: mysql
-        tier: backend
+        app: mysql-app
     spec:
-#      restartPolicy: Always
+      restartPolicy: Always
       volumes:
       - name: mysql-persistent-volume
         persistentVolumeClaim:
@@ -70,11 +69,17 @@ spec:
           valueFrom:
             secretKeyRef:
               name: mysql-secrets
-              key: ROOT_PASSWORD
-#        - name: MYSQL_USER
-#          value: sseo
-#        - name: MYSQL_PASSWORD
-#          value: test
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: MYSQL_PASSWORD
         ports:
         - containerPort: 3306
         volumeMounts:
