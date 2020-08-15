@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpmyadmin-service
+  labels:
+    run: phpmyadmin
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: phpmyadmin-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin-deployment
+  labels:
+    app: phpmyadmin-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phpmyadmin-app
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin-app
+    spec:
+      containers:
+      - name: phpmyadmin
+        image: phpmyadmin/phpmyadmin
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: ROOT_PASSWORD
+        - name: MYSQL_USER
+          value: sseo
+        - name: MYSQL_PASSWORD
+          value: test
+        - name: PMA_HOST
+          value: mysql-service
+        - name: PMA_PORT
+          value: "3306"
+        ports:
+        - containerPort: 5000

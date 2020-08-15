@@ -1,63 +1,56 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: wordpress-nginx
+  name: nginx
   labels:
     run: nginx
 spec:
   type: LoadBalancer
-  ports: #포트가 두개 일때 포트 이름을 명시해줘야 합니다.
+  ports:
   - port: 80
     protocol: TCP
     name: http
   - port: 443
     protocol: TCP
     name: https
-  - port: 30022
-    protocol: TCP
-    name: ssh
   selector:
-    run: nginx
+    app: nginx
     tier: backend
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wordpress-nginx
+  name: nginx
+  labels:
+    app: nginx
 spec:
   selector:
     matchLabels:
-      run: nginx
+      app: nginx
       tier: backend
   replicas: 1
   template:
     metadata:
       labels:
-        run: nginx
+        app: nginx
         tier: backend
     spec:
       volumes:
       - name: secret-volume
         secret:
           secretName: nginxsecret
-      - name: ssh-key-volume
-        secret:
-          secretName: ssh-key-secret
       - name: configmap-volume
         configMap:
           name: nginxconfigmap
       containers:
       - name: nginx
         image: sseo_nginx:1.0
-        imagePullPolicy: Never #이미지가 로컬에 있다고 가정합니다.
+        imagePullPolicy: Never
         ports:
         - containerPort: 443
         - containerPort: 80
-        - containerPort: 30022
-        volumeMounts: #nginx, ssl 설정을 볼륨 마운트를 통해 전달!
-        - mountPath: /etc/ssl
-          name: secret-volume
-        - mountPath: /etc/nginx
-          name: configmap-volume
-        - mountPath: /etc/ssh
-          name: ssh-key-volume
+        volumeMounts:
+        - name: secret-volume
+          mountPath: /etc/ssl
+        - name: configmap-volume
+          mountPath: /etc/nginx
