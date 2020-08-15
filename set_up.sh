@@ -6,6 +6,7 @@ NGINX_DIR=${SRC_DIR}/nginx
 FTPS_DIR=${SRC_DIR}/ftps
 MYSQL_DIR=${SRC_DIR}/mysql
 PHPMYADMIN_DIR=${SRC_DIR}/phpmyadmin
+WORDPRESS_DIR=${SRC_DIR}/wordpress
 
 #set ARP for routing
 kubectl get configmap kube-proxy -n kube-system -o yaml | \
@@ -43,3 +44,7 @@ kubectl apply -f ${MYSQL_DIR}/mysql.yaml
 #build phpmyadmin
 docker build -t sseo_phpmyadmin:1.0 ${PHPMYADMIN_DIR}
 kubectl apply -f ${PHPMYADMIN_DIR}/phpmyadmin.yaml
+
+#build wordpress
+docker build -t sseo_wordpress:1.0 ${WORDPRESS_DIR}
+kubectl apply -f ${WORDPRESS_DIR}/wordpress.yaml

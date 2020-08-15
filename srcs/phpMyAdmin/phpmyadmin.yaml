@@ -32,6 +32,7 @@ spec:
       containers:
       - name: phpmyadmin
         image: sseo_phpmyadmin:1.0
+		imagePullPolicy: Never
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:

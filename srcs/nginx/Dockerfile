@@ -2,9 +2,9 @@ FROM alpine
 
 RUN apk update
 RUN apk add nginx
-RUN apk add --no-cache --upgrade bash
-RUN mkdir -p var/run/nginx
+RUN apk add --upgrade bash
 RUN apk add openssl
+RUN mkdir -p var/run/nginx
 
 RUN rm -rf /var/cache/apk/*
 
