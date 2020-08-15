@@ -25,8 +25,8 @@ kubectl apply -f ${SRC_DIR}/metallb/config.yaml
 #build nginx
 cd ${NGINX_DIR}; make keys
 
-kubectl create secret tls nginxsecret --key ${NGINX_DIR}/nginx.key --cert ${NGINX_DIR}/nginx.crt
-kubectl create configmap nginxconfigmap --from-file=${NGINX_DIR}/nginx.conf
+kubectl create secret tls nginx-secret --key ${NGINX_DIR}/nginx.key --cert ${NGINX_DIR}/nginx.crt
+kubectl create configmap nginx-configmap --from-file=${NGINX_DIR}/nginx.conf
 
 docker build -t sseo_nginx:1.0 ${NGINX_DIR}
 kubectl apply -f ${NGINX_DIR}/nginx.yaml

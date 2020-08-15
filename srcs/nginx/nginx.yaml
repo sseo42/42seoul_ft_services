@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx
+  name: nginx-service
   labels:
     run: nginx
 spec:
@@ -14,34 +14,31 @@ spec:
     protocol: TCP
     name: https
   selector:
-    app: nginx
-    tier: backend
+    app: nginx-app
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: nginx-deployment
   labels:
-    app: nginx
+    app: nginx-app
 spec:
   selector:
     matchLabels:
-      app: nginx
-      tier: backend
+      app: nginx-app
   replicas: 1
   template:
     metadata:
       labels:
-        app: nginx
-        tier: backend
+        app: nginx-app
     spec:
       volumes:
       - name: secret-volume
         secret:
-          secretName: nginxsecret
+          secretName: nginx-secret
       - name: configmap-volume
         configMap:
-          name: nginxconfigmap
+          name: nginx-configmap
       containers:
       - name: nginx
         image: sseo_nginx:1.0
