@@ -7,6 +7,9 @@ FTPS_DIR=${SRC_DIR}/ftps
 MYSQL_DIR=${SRC_DIR}/mysql
 PHPMYADMIN_DIR=${SRC_DIR}/phpmyadmin
 WORDPRESS_DIR=${SRC_DIR}/wordpress
+GRAFANA_DIR=${SRC_DIR}/grafana
+INFLUXDB_DIR=${SRC_DIR}/influxdb
+TELEGRAF_DIR=${SRC_DIR}/telegraf
 
 #set ARP for routing
 kubectl get configmap kube-proxy -n kube-system -o yaml | \
@@ -48,3 +51,15 @@ kubectl apply -f ${PHPMYADMIN_DIR}/phpmyadmin.yaml
 #build wordpress
 docker build -t sseo_wordpress:1.0 ${WORDPRESS_DIR}
 kubectl apply -f ${WORDPRESS_DIR}/wordpress.yaml
+
+#build grafana
+docker build -t sseo_grafana:1.0 ${GRAFANA_DIR}
+kubectl apply -f ${GRAFANA_DIR}/grafana.yaml
+
+#build influxdb
+docker build -t sseo_influxdb:1.0 ${INFLUXDB_DIR}
+kubectl apply -f ${INFLUXDB_DIR}/influxdb.yaml
+
+#build telegraf
+docker build -t sseo_telegraf:1.0 ${TELEGRAF_DIR}
+kubectl apply -f ${TELEGRAF_DIR}/telegraf.yaml

@@ -7,7 +7,7 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 80
+  - port: 5050
     protocol: TCP
     name: http
   selector:
@@ -15,7 +15,7 @@ spec:
 ---
 apiVersion: apps/v1
 kind: Deployment
-meatadata:
+metadata:
   name: wordpress-deployment
   labels:
     app: wordpress-app
@@ -31,7 +31,8 @@ spec:
     spec:
       containers:
       - name: wordpress
-        image: wordpress
+        image: sseo_wordpress:1.0
+		imagePullPolicy: Never
         env:
         - name: WORDPRESS_DB_NAME
           value: wordpress
@@ -48,4 +49,4 @@ spec:
               name: mysql-secrets
               key: MYSQL_PASSWORD
         ports:
-        - containerPort: 80
+        - containerPort: 5050
