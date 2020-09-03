@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/sh
 
 cd /grafana-7.1.3/bin && ./grafana-server

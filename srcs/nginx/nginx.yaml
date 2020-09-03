@@ -7,14 +7,26 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 80
-    protocol: TCP
-    name: http
-  - port: 443
-    protocol: TCP
-    name: https
+    - port: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      protocol: TCP 
+      name: https
+    - port: 30020
+      protocol: TCP
+      name: ssh
   selector:
     app: nginx-app
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nginx-ssh-user
+type: Opaque
+data:
+  SSH_USER: c3Nlbw==
+  SSH_PASSWORD: cGFzc3dvcmQ=
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -26,6 +38,8 @@ spec:
   selector:
     matchLabels:
       app: nginx-app
+  strategy:
+    type: Recreate
   replicas: 1
   template:
     metadata:
@@ -33,21 +47,33 @@ spec:
         app: nginx-app
     spec:
       volumes:
-      - name: secret-volume
+      - name: nginx-secrets
         secret:
-          secretName: nginx-secret
-      - name: configmap-volume
+          secretName: nginx-secrets
+      - name: nginx-config
         configMap:
-          name: nginx-configmap
+          name: nginx-config
       containers:
       - name: nginx
         image: sseo_nginx:1.0
         imagePullPolicy: Never
         ports:
-        - containerPort: 443
         - containerPort: 80
+        - containerPort: 443
+        - containerPort: 30020
+        env:
+        - name: SSH_USER
+          valueFrom:
+            secretKeyRef:
+              name: nginx-ssh-user
+              key: SSH_USER
+        - name: SSH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: nginx-ssh-user
+              key: SSH_PASSWORD
         volumeMounts:
-        - name: secret-volume
+        - name: nginx-secrets
           mountPath: /etc/ssl
-        - name: configmap-volume
+        - name: nginx-config
           mountPath: /etc/nginx

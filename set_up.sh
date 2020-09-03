@@ -3,13 +3,21 @@
 PRJ_DIR=$(pwd)
 SRC_DIR=${PRJ_DIR}/srcs
 NGINX_DIR=${SRC_DIR}/nginx
-FTPS_DIR=${SRC_DIR}/ftps
 MYSQL_DIR=${SRC_DIR}/mysql
 PHPMYADMIN_DIR=${SRC_DIR}/phpmyadmin
 WORDPRESS_DIR=${SRC_DIR}/wordpress
 GRAFANA_DIR=${SRC_DIR}/grafana
 INFLUXDB_DIR=${SRC_DIR}/influxdb
 TELEGRAF_DIR=${SRC_DIR}/telegraf
+FTPS_DIR=${SRC_DIR}/ftps
+
+SERVICE_LIST="nginx mysql phpmyadmin wordpress grafana influxdb telegraf ftps"
+
+#start minikube
+if [[ $(minikube status | grep -c "Running") == 0 ]]
+then
+    minikube start --cpus=2 --memory 4000 --vm-driver=virtualbox --extra-config=apiserver.service-node-port-range=1-35000
+fi
 
 #set ARP for routing
 kubectl get configmap kube-proxy -n kube-system -o yaml | \
@@ -26,40 +34,22 @@ kubectl create secret generic -n metallb-system memberlist --from-literal=secret
 
 kubectl apply -f ${SRC_DIR}/metallb/config.yaml
 
-#build nginx
+#makefile
 cd ${NGINX_DIR}; make keys
+cd ${FTPS_DIR}; make keys
 
-kubectl create secret tls nginx-secret --key ${NGINX_DIR}/nginx.key --cert ${NGINX_DIR}/nginx.crt
-kubectl create configmap nginx-configmap --from-file=${NGINX_DIR}/nginx.conf
+#secret & configmap
+kubectl create secret tls nginx-secrets --key ${NGINX_DIR}/nginx.key --cert ${NGINX_DIR}/nginx.crt
+kubectl create configmap nginx-config --from-file=${NGINX_DIR}/nginx.conf
+kubectl create secret tls ftps-secrets --key ${FTPS_DIR}/ftps.key --cert ${FTPS_DIR}/ftps.crt
+kubectl create configmap telegraf-config --from-file=${TELEGRAF_DIR}/telegraf.conf
 
-docker build -t sseo_nginx:1.0 ${NGINX_DIR}
-kubectl apply -f ${NGINX_DIR}/nginx.yaml
+for SERVICE in $SERVICE_LIST
+do
+    docker build -t sseo_$SERVICE:1.0 ${SRC_DIR}/$SERVICE
+done
 
-#build ftps
-cd ${FTPS_DIR}; make pem
-docker build -t sseo_ftps:1.0 ${FTPS_DIR}
-kubectl apply -f ${FTPS_DIR}/ftps.yaml
-
-#build mysql
-docker build -t sseo_mysql:1.0 ${MYSQL_DIR}
-kubectl apply -f ${MYSQL_DIR}/mysql.yaml
-
-#build phpmyadmin
-docker build -t sseo_phpmyadmin:1.0 ${PHPMYADMIN_DIR}
-kubectl apply -f ${PHPMYADMIN_DIR}/phpmyadmin.yaml
-
-#build wordpress
-docker build -t sseo_wordpress:1.0 ${WORDPRESS_DIR}
-kubectl apply -f ${WORDPRESS_DIR}/wordpress.yaml
-
-#build grafana
-docker build -t sseo_grafana:1.0 ${GRAFANA_DIR}
-kubectl apply -f ${GRAFANA_DIR}/grafana.yaml
-
-#build influxdb
-docker build -t sseo_influxdb:1.0 ${INFLUXDB_DIR}
-kubectl apply -f ${INFLUXDB_DIR}/influxdb.yaml
-
-#build telegraf
-docker build -t sseo_telegraf:1.0 ${TELEGRAF_DIR}
-kubectl apply -f ${TELEGRAF_DIR}/telegraf.yaml
+for SERVICE in $SERVICE_LIST
+do
+    kubectl apply -f ${SRC_DIR}/$SERVICE/$SERVICE.yaml
+done

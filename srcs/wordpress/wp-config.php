@@ -1,4 +1,19 @@
 <?php
+
+$variables = array(
+		'WORDPRESS_DB_NAME',
+		'WORDPRESS_DB_HOST',
+		'WORDPRESS_DB_USER',
+		'WORDPRESS_DB_PASSWORD'
+);
+
+foreach ($variables as $var) {
+	$env = getenv($var);
+	if (!isset($_ENV[$var]) && $env !== false) {
+		$_ENV[$var] = $env;
+	}
+}
+
 /**
  * The base configuration for WordPress
  *
@@ -20,16 +35,16 @@
 
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define( 'DB_NAME', 'wordpress' );
+define( 'DB_NAME', $_ENV['WORDPRESS_DB_NAME'] );
 
 /** MySQL database username */
-define( 'DB_USER', 'sseo' );
+define( 'DB_USER', $_ENV['WORDPRESS_DB_USER'] );
 
 /** MySQL database password */
-define( 'DB_PASSWORD', 'password' );
+define( 'DB_PASSWORD', $_ENV['WORDPRESS_DB_PASSWORD'] );
 
 /** MySQL hostname */
-define( 'DB_HOST', 'mysql-service:3306' );
+define( 'DB_HOST', $_ENV['WORDPRESS_DB_HOST'] );
 
 /** Database Charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8' );

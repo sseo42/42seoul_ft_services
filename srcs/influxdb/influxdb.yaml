@@ -5,13 +5,22 @@ metadata:
   labels:
     run: influxdb
 spec:
-  type: LoadBalancer
   ports:
   - port: 8086
     protocol: TCP
     name: http
   selector:
     app: influxdb-app
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: influxdb-secrets
+type: Opaque
+data:
+  INFLUXDB_DB: aW5mbHV4ZGI=
+  INFLUXDB_USER: c3Nlbw==
+  INFLUXDB_PASSWORD: aW5mbHV4ZGJwYXNzd29yZA==
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -44,17 +53,31 @@ spec:
       labels:
         app: influxdb-app
     spec:
-      restartPolicys: always
+      restartPolicy: Always
       volumes:
       - name: influxdb-persistent-volume
-        presistentVolumeClaim:
+        persistentVolumeClaim:
           claimName: influxdb-pv-claim
       containers:
       - name: influxdb
         image: sseo_influxdb:1.0
         imagePullPolicy: Never
-        ports:
-        - containerPort: 8086
+        env:
+        - name: INFLUXDB_DB
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-secrets
+              key: INFLUXDB_DB
+        - name: INFLUXDB_USER
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-secrets
+              key: INFLUXDB_USER
+        - name: INFLUXDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-secrets
+              key: INFLUXDB_PASSWORD
         volumeMounts:
         - name: influxdb-persistent-volume
           mountPath: /var/lib/influxdb

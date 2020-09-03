@@ -1,0 +1,7 @@
+Port 30020
+PermitRootLogin yes
+PasswordAuthentication yes
+#AllowTcpForwarding yes
+#GatewayPorts yes
+#X11Forwarding yes
+Subsystem sftp /usr/lib/ssh/sftp-server

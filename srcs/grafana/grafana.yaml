@@ -33,5 +33,3 @@ spec:
       - name: grafana
         image: sseo_grafana:1.0
         imagePullPolicy: Never
-        ports:
-        - containerPort: 3000

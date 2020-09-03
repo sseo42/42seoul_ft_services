@@ -2,7 +2,6 @@ FROM alpine:latest
 
 RUN apk update
 RUN apk add mariadb mariadb-client
-RUN apk add --no-cache --upgrade bash
 RUN rm -rf /var/cache/apk/*
 
 COPY ./start.sh .

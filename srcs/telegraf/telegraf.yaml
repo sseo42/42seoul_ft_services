@@ -5,13 +5,9 @@ metadata:
   labels:
     run: telegraf
 spec:
-  type: LoadBalancer
-  ports:
-  - port: 4999
-    protocol: TCP
-    name: http
   selector:
     app: telegraf-app
+  clusterIP: None
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -29,25 +25,33 @@ spec:
       labels:
         app: telegraf-app
     spec:
+      serviceAccountName: service-access
       volumes:
-      - name: docker-sock
-        hostPath:
-          path: /var/run/docker.sock
+        - name: telegraf-config
+          configMap:
+            name: telegraf-config
       containers:
       - name: telegraf
         image: sseo_telegraf:1.0
         imagePullPolicy: Never
         env:
-        - name: USER
-          value: telegraf
-        - name: INFLUX_URL
-          value: "http://IP:8086"
-        - name: INFLUX_SKIP_DATABASE_CREATION
-          value: "false"
-        - name: INFLUX_PASSWORD
-          value: "services"
-        ports:
-        - containerPort: 4999
+        - name: INFLUXDB_DB
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-secrets
+              key: INFLUXDB_DB
+        - name: INFLUXDB_USER
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-secrets
+              key: INFLUXDB_USER
+        - name: INFLUXDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-secrets
+              key: INFLUXDB_PASSWORD
         volumeMounts:
-        - name: docker-sock
-          mountPath: "/var/run/docker.sock"
+          - name: telegraf-config
+            mountPath: /etc/telegraf/telegraf.conf
+            subPath: telegraf.conf
+            readOnly: true

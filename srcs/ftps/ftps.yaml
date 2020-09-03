@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ftps
+  name: ftps-service
   labels:
-    app: ftps
+    run: ftps
 spec:
   ports:
     - port: 21
@@ -12,63 +12,101 @@ spec:
     - port: 20
       protocol: TCP
       name: ftps-data
-    - port: 30010
+    - port: 30021
       protocol: TCP
-      nodePort: 30010
-      name: ftps-pasv1
-    - port: 30011
+      name: ftps-psv1
+    - port: 30022
       protocol: TCP
-      nodePort: 30011
-      name: ftps-pasv2
-    - port: 30012
+      name: ftps-psv2
+    - port: 30023
       protocol: TCP
-      nodePort: 30012
-      name: ftps-pasv3
-    - port: 30013
+      name: ftps-psv3
+    - port: 30024
       protocol: TCP
-      nodePort: 30013
-      name: ftps-pasv4
-      nodePort: 30013
-    - port: 30014
+      name: ftps-psv4
+    - port: 30025
       protocol: TCP
-      nodePort: 30014
-      name: ftps-pasv5
+      name: ftps-psv5
   selector:
-    app: ftp
+    app: ftps-app
   type: LoadBalancer
 ---
-apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ftps-user
+type: Opaque
+data:
+  FTPS_USER: c3Nlbw==
+  FTPS_PASSWORD: cGFzc3dvcmQ=
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ftps
+  name: ftps-deployment
   labels:
-    app: ftps
+    app: ftps-app
 spec:
   selector:
     matchLabels:
-      app: ftps
+      app: ftps-app
   replicas: 1
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: ftps
+        app: ftps-app
     spec:
+      serviceAccount: service-access
+      volumes:
+      - name: ftps-secrets
+        secret:
+          secretName: ftps-secrets
       containers:
       - image: sseo_ftps:1.0
         imagePullPolicy: Never
         name: ftps
         env:
-          - name: NODE_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-        ports:
-        - containerPort: 21
-        - containerPort: 30010
-        - containerPort: 30011
-        - containerPort: 30012
-        - containerPort: 30013
-        - containerPort: 30014
-        - containerPort: 30015
+        - name: FTP_USER
+          valueFrom:
+            secretKeyRef:
+              name: ftps-user
+              key: FTPS_USER
+        - name: FTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ftps-user
+              key: FTPS_PASSWORD
+        volumeMounts:
+        - name: ftps-secrets
+          mountPath: /etc/ssl/private
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: service-viewer
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: service-viewer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: service-viewer
+subjects:
+- kind: ServiceAccount
+  name: service-access
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-access
+  labels:
+    app: service-access-app

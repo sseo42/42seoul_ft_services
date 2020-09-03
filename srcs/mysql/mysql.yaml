@@ -5,7 +5,6 @@ metadata:
   labels:
     run: mysql
 spec:
-  type: LoadBalancer
   ports:
     - port: 3306
       protocol: TCP
@@ -19,9 +18,10 @@ metadata:
   name: mysql-secrets
 type: Opaque
 data:
-  MYSQL_ROOT_PASSWORD: c3NlbzQyLXNlY3JldA==
-  MYSQL_USER: c3Nlbw==
-  MYSQL_PASSWORD: cGFzc3dvcmQ=
+  PMA_USER: c3Nlbw==
+  PMA_PASSWORD: cGFzc3dvcmQ=
+  WP_USER: d29yZHByZXNz
+  WP_PASSWORD: c3Ryb25ncGFzc3dvcmQ=
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -64,23 +64,26 @@ spec:
         image: sseo_mysql:1.0
         imagePullPolicy: Never
         env:
-        - name: MYSQL_ROOT_PASSWORD
+        - name: PMA_USER
           valueFrom:
             secretKeyRef:
               name: mysql-secrets
-              key: MYSQL_ROOT_PASSWORD
-        - name: MYSQL_USER
+              key: PMA_USER
+        - name: PMA_PASSWORD
           valueFrom:
             secretKeyRef:
               name: mysql-secrets
-              key: MYSQL_USER
-        - name: MYSQL_PASSWORD
+              key: PMA_PASSWORD
+        - name: WP_USER
           valueFrom:
             secretKeyRef:
               name: mysql-secrets
-              key: MYSQL_PASSWORD
-        ports:
-        - containerPort: 3306
+              key: WP_USER
+        - name: WP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: WP_PASSWORD
         volumeMounts:
         - name: mysql-persistent-volume
           mountPath: /var/lib/mysql

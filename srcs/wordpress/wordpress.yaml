@@ -13,6 +13,19 @@ spec:
   selector:
     app: wordpress-app
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wp-pv-claim
+  labels:
+    app: wordpress-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,10 +42,14 @@ spec:
       labels:
         app: wordpress-app
     spec:
+      volumes:
+      - name: wordpress-persistent-volume
+        persistentVolumeClaim:
+          claimName: wp-pv-claim
       containers:
       - name: wordpress
         image: sseo_wordpress:1.0
-		imagePullPolicy: Never
+        imagePullPolicy: Never
         env:
         - name: WORDPRESS_DB_NAME
           value: wordpress
@@ -42,11 +59,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: mysql-secrets
-              key: MYSQL_USER
+              key: WP_USER
         - name: WORDPRESS_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: mysql-secrets
-              key: MYSQL_PASSWORD
-        ports:
-        - containerPort: 5050
+              key: WP_PASSWORD
+        volumeMounts:
+        - name: wordpress-persistent-volume
+          mountPath: /wordpress
